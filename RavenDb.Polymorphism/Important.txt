@@ -1,0 +1,70 @@
+﻿Objectives:
+============
+
+All document collections are singular and named for the type or specific ancestor.
+
+Store, Query and Search for Documents in a Mixed Type/Collection document Store.
+
+The owning type is World, world is doted in its own collection.
+All other types are stored in a Denizen collection.
+
+The document type hierarchy is as seen in the Model class diagram
+It is non represtanational of these real world eneities, just enough to discrominate for this set of tests
+
+e.g.
+Denizen
+	Animal
+		Mammal
+		Insect
+	Plant
+		Vegetable
+
+
+The need is to be able to  store documents in these collections.
+
+World
+Denizen
+
+Reduced Index numbers and sizes are preferred.
+
+Specific goals
+
+CRUD operations on each concrete (non abstract) entity type.
+
+Dog were chosen as s sample
+
+Query Abstraction sets at any level up to Denizen for a specific world
+
+The access requirements are;
+Query, Load & Store documents of all derived types
+World in its own store, all others in Denizen store
+Query documents of all abstract types retrieving them as thier derived type.
+Search across all worlds for all denizens of any type.
+
+Notes:
+===========
+
+Important factors achieving these goals;
+
+The base class Entity<T> 
+Provides a read only serialised string property 'Type' provided by the getter.
+
+ 
+Qhen querying
+Extensions.SubClassNames, as used in the BaseCollectionTests, to create a lookup list to match against Type for queries agaist an abstract Type
+
+
+When querying specific types of a derived type from any of its ancestoral bases
+//                                   v still looks in denizen entity store
+List<Animal> items = Session.Query<Animal>() .Where(x => x.WorldId == World.Id && x.Type == (typeof (Dog).Name)).ToList();
+//  ^ for items that are a Dog
+
+When Querying any member of an ancestral base;
+
+
+//		v top base   
+List<Denizen> items = Session.Query<Denizen>()
+    .Where(x => x.WorldId == World.Id
+                && x.Type.In(typeof(Animal).SubClassNames())).Take(1024).ToList();
+//									  ^ retrieve any type that is a subclass of this
+
